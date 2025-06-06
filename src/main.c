@@ -3,6 +3,11 @@
 #include <linux/limits.h>
 #include <stdio.h>
 
+// All just for putting the window on top
+#include <gdk/x11/gdkx.h>
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+
 GtkTextBuffer *buffer;
 char gblfilename[32];
 
@@ -54,10 +59,13 @@ static int save_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
 {
     int status = save_buffer();
     char *title = g_strdup_printf("GsTicKy - %s.txt", gblfilename);
-    if (status) {
+    if (status)
+    {
         gtk_window_set_title(GTK_WINDOW(widget), title);
         return 1;
-    } else {
+    }
+    else
+    {
         gtk_window_set_title(GTK_WINDOW(widget), "GsTicKy - Failed to save buffer");
         gtk_widget_set_size_request(widget, 400, 200);
         return 0;
@@ -82,6 +90,57 @@ static int quit_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
     return 1;
 }
 
+/**
+ * Abandon all hope, ye who enter here. This be vibecode territory, because I'm not learning the X11 API just to put a window on top.
+ * @param window: the standard window of the sticky note
+ */
+void set_always_on_top(GtkWindow *window)
+{
+    // Make sure the window has been realized
+    if (!gtk_widget_get_realized(GTK_WIDGET(window)))
+        gtk_widget_realize(GTK_WIDGET(window));
+
+    // Ensure we're running under X11
+    GdkDisplay *display = gdk_display_get_default();
+    if (!GDK_IS_X11_DISPLAY(display))
+        return;
+
+    GtkNative *native = gtk_widget_get_native(GTK_WIDGET(window));
+    GdkSurface *surface = gtk_native_get_surface(native);
+
+    Display *xdisplay = GDK_DISPLAY_XDISPLAY(display);
+    Window xwindow = GDK_SURFACE_XID(surface);
+
+    Atom wm_state = XInternAtom(xdisplay, "_NET_WM_STATE", False);
+    Atom wm_state_above = XInternAtom(xdisplay, "_NET_WM_STATE_ABOVE", False);
+
+    XEvent xev = {0};
+    xev.xclient.type = ClientMessage;
+    xev.xclient.serial = 0;
+    xev.xclient.send_event = True;
+    xev.xclient.display = xdisplay;
+    xev.xclient.window = xwindow;
+    xev.xclient.message_type = wm_state;
+    xev.xclient.format = 32;
+    xev.xclient.data.l[0] = 1; // _NET_WM_STATE_ADD
+    xev.xclient.data.l[1] = wm_state_above;
+    xev.xclient.data.l[2] = 0;
+    xev.xclient.data.l[3] = 1; // normal source indication
+    xev.xclient.data.l[4] = 0;
+
+    XSendEvent(xdisplay, DefaultRootWindow(xdisplay), False,
+               SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+
+    XFlush(xdisplay);
+}
+
+gboolean set_on_top_later(gpointer data)
+{
+    GtkWindow *window = GTK_WINDOW(data);
+    set_always_on_top(window);
+    return G_SOURCE_REMOVE;
+}
+
 static void activate(GtkApplication *app, gpointer user_data)
 {
     /* Construct a GtkBuilder instance and load our UI description */
@@ -91,6 +150,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     /* Connect signal handlers to the constructed widgets. */
     GObject *window = gtk_builder_get_object(builder, "window");
     gtk_window_set_application(GTK_WINDOW(window), app);
+    g_signal_connect(window, "realize", G_CALLBACK(set_always_on_top), NULL);
 
     // Anything else beyond this point is custom. May god have mercy on my soul.
     // Get the GtkTextView
@@ -125,6 +185,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     gtk_shortcut_controller_add_shortcut(GTK_SHORTCUT_CONTROLLER(quit_ctrl), quit_shct);
 
     gtk_window_present(GTK_WINDOW(window));
+    g_idle_add(set_on_top_later, window);
 }
 
 int main(int argc, char *argv[])
