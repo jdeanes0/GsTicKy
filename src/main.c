@@ -108,8 +108,11 @@ void set_always_on_top(GtkWindow *window)
     GtkNative *native = gtk_widget_get_native(GTK_WIDGET(window));
     GdkSurface *surface = gtk_native_get_surface(native);
 
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     Display *xdisplay = GDK_DISPLAY_XDISPLAY(display);
     Window xwindow = GDK_SURFACE_XID(surface);
+    #pragma GCC diagnostic pop
 
     Atom wm_state = XInternAtom(xdisplay, "_NET_WM_STATE", False);
     Atom wm_state_above = XInternAtom(xdisplay, "_NET_WM_STATE_ABOVE", False);
@@ -161,6 +164,7 @@ static void activate(GtkApplication *app, gpointer user_data)
         buffer = gtk_text_buffer_new(NULL);
         gtk_text_view_set_buffer(GTK_TEXT_VIEW(textview), buffer);
     }
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview), GTK_WRAP_WORD_CHAR);
 
     // That's the basic buffer. Let's add some keybinds now.
     GtkEventController *save_ctrl = gtk_shortcut_controller_new(); // saves the note's content to ~/Documents/GsTicKy
