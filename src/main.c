@@ -8,6 +8,8 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
+#include "keybinds.h"
+
 GtkTextBuffer *buffer;
 char gblfilename[32];
 
@@ -36,8 +38,6 @@ int save_buffer()
     strcpy(gblfilename, title);
     char filepath[PATH_MAX];
     snprintf(filepath, sizeof(filepath), "%s/Documents/GsTicKy/%s.txt", getenv("HOME"), title);
-    // int status = snprintf()
-    // char *filename = strcat("~/Documents/GsTicKy/", title);
 
     FILE *fp = fopen(filepath, "w");
     if (fp)
@@ -62,6 +62,7 @@ static int save_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
     if (status)
     {
         gtk_window_set_title(GTK_WINDOW(widget), title);
+        gtk_widget_set_size_request(widget, 400, 200);
         return 1;
     }
     else
@@ -72,7 +73,24 @@ static int save_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
     }
 }
 
-static void delete_cb();
+/**
+ * Deletes the text in the buffer and removes the file that the note is referencing if applicable
+ */
+static int delete_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
+{
+    // clear buffer
+    gtk_text_buffer_set_text(buffer, "", 0);
+
+    // remove the file associated with the buffer, and clear the file
+    char filepath[PATH_MAX];
+    snprintf(filepath, sizeof(filepath), "%s/Documents/GsTicKy/%s.txt", getenv("HOME"), gblfilename);
+    if (remove(filepath) == 0) {
+        gtk_window_set_title(GTK_WINDOW(widget), "GsTicKy");
+        return 1;
+    } else {
+        return 0;
+    }
+}
 
 /**
  * Closes the current window & saves it's contents TODO: automatically
@@ -81,6 +99,7 @@ static void delete_cb();
 static int quit_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
 {
     // open a file descriptor with the name of the file
+    int status;
     if (!save_buffer())
     {
         return 0;
@@ -167,26 +186,14 @@ static void activate(GtkApplication *app, gpointer user_data)
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview), GTK_WRAP_WORD_CHAR);
 
     // That's the basic buffer. Let's add some keybinds now.
-    GtkEventController *save_ctrl = gtk_shortcut_controller_new(); // saves the note's content to ~/Documents/GsTicKy
-    gtk_widget_add_controller(GTK_WIDGET(window), save_ctrl);
-    GtkShortcut *save_shct = gtk_shortcut_new(
-        gtk_keyval_trigger_new(GDK_KEY_s, GDK_CONTROL_MASK),
-        gtk_callback_action_new(save_cb, NULL, NULL));
-    gtk_shortcut_controller_add_shortcut(GTK_SHORTCUT_CONTROLLER(save_ctrl), save_shct);
+    GtkEventController *save_ctrl = gtk_shortcut_controller_new(); // saves the file
+    create_keybind(GTK_WIDGET(window), save_ctrl, save_cb, GDK_KEY_s, GDK_CONTROL_MASK);
 
-    // GtkEventController *delete_ctrl = gtk_shortcut_controller_new(); // deletes the note's contents and the file record of it
-    // gtk_widget_add_controller(window, delete_ctrl);
-    // GtkShortcut *delete_shct = gtk_shortcut_new(
-    //     gtk_keyval_trigger_new(GDK_KEY_x, GDK_CONTROL_MASK | GDK_SHIFT_MASK), // Ctrl-Shift-X
-    //     gtk_callback_action_new(delete_cb, NULL, NULL));
-    // gtk_shortcut_controller_add_shortcut(GTK_SHORTCUT_CONTROLLER(delete_ctrl), delete_shct);
-
+    GtkEventController *delete_ctrl = gtk_shortcut_controller_new(); // deletes the note's contents and the file record of it
+    create_keybind(GTK_WIDGET(window), delete_ctrl, delete_cb, GDK_KEY_x, GDK_CONTROL_MASK | GDK_SHIFT_MASK);
+   
     GtkEventController *quit_ctrl = gtk_shortcut_controller_new(); // quits the program and saves the note with the contents of the first line as the title
-    gtk_widget_add_controller(GTK_WIDGET(window), quit_ctrl);
-    GtkShortcut *quit_shct = gtk_shortcut_new(
-        gtk_keyval_trigger_new(GDK_KEY_d, GDK_CONTROL_MASK),
-        gtk_callback_action_new(quit_cb, NULL, NULL));
-    gtk_shortcut_controller_add_shortcut(GTK_SHORTCUT_CONTROLLER(quit_ctrl), quit_shct);
+    create_keybind(GTK_WIDGET(window), quit_ctrl, quit_cb, GDK_KEY_d, GDK_CONTROL_MASK);
 
     gtk_window_present(GTK_WINDOW(window));
     g_idle_add(set_on_top_later, window);

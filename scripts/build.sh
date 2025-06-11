@@ -1,1 +1,0 @@
-gcc $(pkg-config --cflags gtk4) -o build/$1 src/$1.c $(pkg-config --libs gtk4) -lm -lX11
