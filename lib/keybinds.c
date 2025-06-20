@@ -9,12 +9,12 @@
  * @param keyval: key on keyboard that triggers keybind (use GDK_KEY_<your key here>)
  * @param modifiers: boolean mask for modifier keys (use GDK_CONTROL_MASK | GDK_SHIFT_MASK & etc.)
  */
-void create_keybind(GtkWidget *widget, GtkEventController *shortcut_controller, GtkShortcutFunc callback, guint keyval, GdkModifierType modifiers) {
+void create_keybind(GtkWidget *widget, GtkEventController *shortcut_controller, GtkShortcutFunc callback, guint keyval, GdkModifierType modifiers, gpointer user_data) {
 
     gtk_widget_add_controller(GTK_WIDGET(widget), shortcut_controller);
     GtkShortcut *shct = gtk_shortcut_new(
         gtk_keyval_trigger_new(keyval, modifiers),
-        gtk_callback_action_new(callback, NULL, NULL));
+        gtk_callback_action_new(callback, user_data, NULL));
     gtk_shortcut_controller_add_shortcut(GTK_SHORTCUT_CONTROLLER(shortcut_controller), shct);
 
 }
@@ -27,13 +27,13 @@ void create_keybind(GtkWidget *widget, GtkEventController *shortcut_controller, 
  * @param modifiers: boolean mask for modifier keys (use GDK_CONTROL_MASK | GDK_SHIFT_MASK & etc.)
  * @return pointer to the new controller for the shortcut
  */
-GtkEventController* create_keybind_return(GtkWidget *widget, GtkShortcutFunc callback, guint keyval, GdkModifierType modifiers) {
+GtkEventController* create_keybind_return(GtkWidget *widget, GtkShortcutFunc callback, guint keyval, GdkModifierType modifiers, gpointer user_data) {
 
     GtkEventController *shortcut_controller = gtk_shortcut_controller_new();
     gtk_widget_add_controller(GTK_WIDGET(widget), shortcut_controller);
     GtkShortcut *shct = gtk_shortcut_new(
         gtk_keyval_trigger_new(keyval, modifiers),
-        gtk_callback_action_new(callback, NULL, NULL));
+        gtk_callback_action_new(callback, user_data, NULL));
     gtk_shortcut_controller_add_shortcut(GTK_SHORTCUT_CONTROLLER(shortcut_controller), shct);
 
     return shortcut_controller;
