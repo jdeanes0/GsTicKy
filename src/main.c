@@ -150,7 +150,7 @@ static int delete_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
 static int quit_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
 {
     // open a file descriptor with the name of the file
-    int status;
+    // int status; // stub?
     if (!save_buffer())
     {
         return 0;
@@ -206,11 +206,15 @@ static int open_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
     gtk_widget_set_visible(GTK_WIDGET(text_entry), true);
     gtk_widget_grab_focus(GTK_WIDGET(text_entry));
     // await keypress of enter
+
+    return 1;
 }
 
 static int escape_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
 {
     gtk_widget_set_visible(widget, false);
+
+    return 1;
 }
 
 /**
@@ -291,7 +295,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview), GTK_WRAP_WORD_CHAR);
 
     GObject *openfile_textentry = gtk_builder_get_object(builder, "openfiletextentry");
-    GtkEntryBuffer *entry_buffer = gtk_entry_get_buffer(GTK_ENTRY(openfile_textentry));
+    // GtkEntryBuffer *entry_buffer = gtk_entry_get_buffer(GTK_ENTRY(openfile_textentry)); // Unused?
     g_signal_connect(openfile_textentry, "activate", G_CALLBACK(handle_entry_cb), NULL);
 
     // unref the builder
