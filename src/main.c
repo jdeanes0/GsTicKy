@@ -10,6 +10,7 @@
 
 #include "keybinds.h"
 
+GtkWindow *window;
 GtkTextBuffer *buffer;
 char gblfilename[PATH_MAX];
 char gblfilepath[PATH_MAX];
@@ -58,6 +59,13 @@ int parse_title(const char *title)
     return 1;
 }
 
+void update_window_title(const char *s, GtkWindow *gWindow)
+{
+    char title[PATH_MAX + sizeof("GsTicKy - ")];
+    snprintf(title, PATH_MAX, "GsTicKy - %s", s);
+    gtk_window_set_title(gWindow, title);
+}
+
 /**
  * @return 1 on success, 0 on failure
  */
@@ -101,16 +109,15 @@ int save_buffer()
 static int save_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
 {
     int status = save_buffer();
-    char *title = g_strdup_printf("GsTicKy - %s", gblfilename);
     if (status)
     {
-        gtk_window_set_title(GTK_WINDOW(widget), title);
+        update_window_title(gblfilename, GTK_WINDOW(widget));
         gtk_widget_set_size_request(widget, 400, 200);
         return 1;
     }
     else
     {
-        gtk_window_set_title(GTK_WINDOW(widget), "GsTicKy - Failed to save buffer");
+        update_window_title("Failed to save buffer", GTK_WINDOW(widget));
         gtk_widget_set_size_request(widget, 400, 200);
         return 0;
     }
@@ -127,7 +134,7 @@ static int delete_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
     // remove the file associated with the buffer, and clear the file
     if (remove(gblfilepath) == 0)
     {
-        gtk_window_set_title(GTK_WINDOW(widget), "GsTicKy");
+        update_window_title("GsTicKy", GTK_WINDOW(widget));
         return 1;
     }
     else
@@ -153,22 +160,75 @@ static int quit_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
     return 1;
 }
 
+static void handle_entry_cb(GtkEntry *entry, GVariant *args, gpointer user_data)
+{
+    const char *filename = gtk_editable_get_text(GTK_EDITABLE(entry));
+    char old_gblfilename[PATH_MAX];
+    char old_gblfilepath[PATH_MAX];
+
+    // Backup current filepath
+    strncpy(old_gblfilename, gblfilename, PATH_MAX);
+    strncpy(old_gblfilepath, gblfilepath, PATH_MAX);
+
+    parse_title(filename);
+    g_print("Attempting to open: %s\n", gblfilepath);
+    FILE *fp = fopen(gblfilepath, "r");
+    if (fp)
+    {
+        // get size of file
+        fseek(fp, 0, SEEK_END);
+        long fsize = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+
+        char *content = g_malloc(fsize + 1);
+        fread(content, 1, fsize, fp);
+        content[fsize] = '\0'; // safety
+        fclose(fp);
+
+        gtk_text_buffer_set_text(buffer, content, -1);
+        g_free(content);
+    }
+    else
+    {
+        strncpy(gblfilename, old_gblfilename, PATH_MAX);
+        strncpy(gblfilepath, old_gblfilepath, PATH_MAX);
+        perror("Failed to open the file");
+    }
+
+    gtk_widget_set_visible(GTK_WIDGET(entry), false);
+    update_window_title(gblfilename, window);
+}
+
+static int open_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
+{
+    // We want another buffer to appear to type the filename into.
+    GtkEntry *text_entry = (GtkEntry *)user_data;
+    gtk_widget_set_visible(GTK_WIDGET(text_entry), true);
+    gtk_widget_grab_focus(GTK_WIDGET(text_entry));
+    // await keypress of enter
+}
+
+static int escape_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
+{
+    gtk_widget_set_visible(widget, false);
+}
+
 /**
  * Abandon all hope, ye who enter here. This be vibecode territory, because I'm not learning the X11 API just to put a window on top.
- * @param window: the standard window of the sticky note
+ * @param gWindow: the standard window of the sticky note
  */
-void set_always_on_top(GtkWindow *window)
+void set_always_on_top(GtkWindow *gWindow)
 {
     // Make sure the window has been realized
-    if (!gtk_widget_get_realized(GTK_WIDGET(window)))
-        gtk_widget_realize(GTK_WIDGET(window));
+    if (!gtk_widget_get_realized(GTK_WIDGET(gWindow)))
+        gtk_widget_realize(GTK_WIDGET(gWindow));
 
     // Ensure we're running under X11
     GdkDisplay *display = gdk_display_get_default();
     if (!GDK_IS_X11_DISPLAY(display))
         return;
 
-    GtkNative *native = gtk_widget_get_native(GTK_WIDGET(window));
+    GtkNative *native = gtk_widget_get_native(GTK_WIDGET(gWindow));
     GdkSurface *surface = gtk_native_get_surface(native);
 
 #pragma GCC diagnostic push
@@ -202,8 +262,8 @@ void set_always_on_top(GtkWindow *window)
 
 gboolean set_on_top_later(gpointer data)
 {
-    GtkWindow *window = GTK_WINDOW(data);
-    set_always_on_top(window);
+    GtkWindow *gWindow = GTK_WINDOW(data);
+    set_always_on_top(gWindow);
     return G_SOURCE_REMOVE;
 }
 
@@ -214,9 +274,10 @@ static void activate(GtkApplication *app, gpointer user_data)
     gtk_builder_add_from_file(builder, "res/main.ui", NULL);
 
     /* Connect signal handlers to the constructed widgets. */
-    GObject *window = gtk_builder_get_object(builder, "window");
-    gtk_window_set_application(GTK_WINDOW(window), app);
-    g_signal_connect(window, "realize", G_CALLBACK(set_always_on_top), NULL);
+    GObject *gWindow = gtk_builder_get_object(builder, "window");
+    gtk_window_set_application(GTK_WINDOW(gWindow), app);
+    g_signal_connect(gWindow, "realize", G_CALLBACK(set_always_on_top), NULL);
+    window = GTK_WINDOW(gWindow); // set the pointer for the global variable
 
     // Anything else beyond this point is custom. May god have mercy on my soul.
     // Get the GtkTextView
@@ -229,18 +290,36 @@ static void activate(GtkApplication *app, gpointer user_data)
     }
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview), GTK_WRAP_WORD_CHAR);
 
+    GObject *openfile_textentry = gtk_builder_get_object(builder, "openfiletextentry");
+    GtkEntryBuffer *entry_buffer = gtk_entry_get_buffer(GTK_ENTRY(openfile_textentry));
+    g_signal_connect(openfile_textentry, "activate", G_CALLBACK(handle_entry_cb), NULL);
+
+    // unref the builder
+    g_object_unref(builder);
+
     // That's the basic buffer. Let's add some keybinds now.
     GtkEventController *save_ctrl = gtk_shortcut_controller_new(); // saves the file
-    create_keybind(GTK_WIDGET(window), save_ctrl, save_cb, GDK_KEY_s, GDK_CONTROL_MASK);
+    create_keybind(GTK_WIDGET(gWindow), save_ctrl, save_cb, GDK_KEY_s, GDK_CONTROL_MASK);
 
     GtkEventController *delete_ctrl = gtk_shortcut_controller_new(); // deletes the note's contents and the file record of it
-    create_keybind(GTK_WIDGET(window), delete_ctrl, delete_cb, GDK_KEY_x, GDK_CONTROL_MASK | GDK_SHIFT_MASK);
+    create_keybind(GTK_WIDGET(gWindow), delete_ctrl, delete_cb, GDK_KEY_x, GDK_CONTROL_MASK | GDK_SHIFT_MASK);
 
     GtkEventController *quit_ctrl = gtk_shortcut_controller_new(); // quits the program and saves the note with the contents of the first line as the title
-    create_keybind(GTK_WIDGET(window), quit_ctrl, quit_cb, GDK_KEY_d, GDK_CONTROL_MASK);
+    create_keybind(GTK_WIDGET(gWindow), quit_ctrl, quit_cb, GDK_KEY_d, GDK_CONTROL_MASK);
 
-    gtk_window_present(GTK_WINDOW(window));
-    g_idle_add(set_on_top_later, window);
+    // Manual shortcut for callback data passing
+    GtkEventController *open_ctrl = gtk_shortcut_controller_new(); // opens a file
+    gtk_widget_add_controller(GTK_WIDGET(gWindow), open_ctrl);
+    GtkShortcut *open_shct = gtk_shortcut_new(
+        gtk_keyval_trigger_new(GDK_KEY_o, GDK_CONTROL_MASK),
+        gtk_callback_action_new(open_cb, openfile_textentry, NULL));
+    gtk_shortcut_controller_add_shortcut(GTK_SHORTCUT_CONTROLLER(open_ctrl), open_shct);
+
+    GtkEventController *esc_open_ctrl = gtk_shortcut_controller_new(); // escapes the "open file" "dialog"
+    create_keybind(GTK_WIDGET(openfile_textentry), esc_open_ctrl, escape_cb, GDK_KEY_Escape, GDK_NO_MODIFIER_MASK);
+
+    gtk_window_present(GTK_WINDOW(gWindow));
+    g_idle_add(set_on_top_later, gWindow);
 }
 
 int main(int argc, char *argv[])
