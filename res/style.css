@@ -1,0 +1,11 @@
+* {
+  color: black;
+}
+
+#textgrid #textview, #window {
+  background-color: #ffff88;
+}
+
+#textgrid #openfiletextentry {
+  background-color: #ffff88;
+}

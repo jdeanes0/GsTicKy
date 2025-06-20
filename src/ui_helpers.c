@@ -12,7 +12,6 @@ void update_window_title(const char *s, GtkWindow *window)
     char title[PATH_MAX + sizeof("GsTicKy - ")];
     snprintf(title, PATH_MAX, "GsTicKy - %s", s);
     gtk_window_set_title(window, title);
-    gtk_widget_set_size_request(GTK_WIDGET(window), MAX(currWidth, 400), MAX(currHeight, 200));
 }
 
 /**

@@ -1,5 +1,4 @@
 #include <gtk/gtk.h>
-#include <linux/limits.h>
 
 #include "appdata.h"
 #include "callbacks.h"
@@ -19,6 +18,13 @@ static void activate(GtkApplication *app, gpointer user_data)
     gtk_window_set_application(GTK_WINDOW(gWindow), app);
     g_signal_connect(gWindow, "realize", G_CALLBACK(set_always_on_top), NULL);
     app_data->window = GTK_WINDOW(gWindow); // set the pointer for the global variable
+    gtk_widget_set_name(GTK_WIDGET(gWindow), "window");
+
+    GObject *scrolled_window = gtk_builder_get_object(builder, "scrolledtextareawrapper");
+    gtk_widget_set_name(GTK_WIDGET(scrolled_window), "scrolled-window");
+
+    GObject *text_grid = gtk_builder_get_object(builder, "textgrid");
+    gtk_widget_set_name(GTK_WIDGET(text_grid), "textgrid");
 
     // Anything else beyond this point is custom. May god have mercy on my soul.
     // Get the GtkTextView
@@ -30,10 +36,20 @@ static void activate(GtkApplication *app, gpointer user_data)
         gtk_text_view_set_buffer(GTK_TEXT_VIEW(textview), app_data->buffer);
     }
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(textview), GTK_WRAP_WORD_CHAR);
+    gtk_widget_set_name(GTK_WIDGET(textview), "textview");
 
     GObject *openfile_textentry = gtk_builder_get_object(builder, "openfiletextentry");
-    // GtkEntryBuffer *entry_buffer = gtk_entry_get_buffer(GTK_ENTRY(openfile_textentry)); // Unused?
     g_signal_connect(openfile_textentry, "activate", G_CALLBACK(handle_entry_cb), app_data);
+    gtk_widget_set_name(GTK_WIDGET(openfile_textentry), "openfiletextentry");
+
+    // load the CSS styles
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_path(provider, "res/style.css");
+    gtk_style_context_add_provider_for_display(
+        gdk_display_get_default(),
+        GTK_STYLE_PROVIDER(provider),
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    g_object_unref(provider);
 
     // unref the builder
     g_object_unref(builder);
