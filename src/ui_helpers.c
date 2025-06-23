@@ -4,10 +4,12 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
+gboolean always_on_top = false;
+
 void update_window_title(const char *s, GtkWindow *window)
 {
-    int currWidth = gtk_widget_get_width(GTK_WIDGET(window));
-    int currHeight = gtk_widget_get_height(GTK_WIDGET(window));
+    // int currWidth = gtk_widget_get_width(GTK_WIDGET(window));
+    // int currHeight = gtk_widget_get_height(GTK_WIDGET(window));
 
     char title[PATH_MAX + sizeof("GsTicKy - ")];
     snprintf(title, PATH_MAX, "GsTicKy - %s", s);
@@ -20,6 +22,8 @@ void update_window_title(const char *s, GtkWindow *window)
  */
 void set_always_on_top(GtkWindow *gWindow)
 {
+    if (!always_on_top) return;
+
     // Make sure the window has been realized
     if (!gtk_widget_get_realized(GTK_WIDGET(gWindow)))
         gtk_widget_realize(GTK_WIDGET(gWindow));

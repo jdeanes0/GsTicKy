@@ -128,3 +128,26 @@ gboolean window_closing_cb(GtkWidget *window, GVariant *args, gpointer user_data
     AppData *app_data = (AppData *)user_data;
     return FALSE; // allows event to propagate? Idk, this is just what gpt said.
 }
+
+/// @brief Opens the help window
+/// @param widget widget from which keybind is invoked from
+/// @param args idk man
+/// @param user_data typically? only the master AppData struct.
+/// @return standard success int
+int help_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
+{
+    AppData *app_data = (AppData *)user_data;
+
+    // Get the window from the .ui file and present it
+    GtkBuilder *builder = gtk_builder_new();
+    gtk_builder_add_from_file(builder, "res/help.ui", NULL);
+
+    GObject *window = gtk_builder_get_object(builder, "window");
+    gtk_window_set_application(GTK_WINDOW(window), app_data->app);
+
+    g_object_unref(builder);
+
+    gtk_window_present(GTK_WINDOW(window));
+
+    return 1;
+}

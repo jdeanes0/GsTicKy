@@ -1,11 +1,15 @@
-* {
+* { /* works */
   color: black;
 }
 
-#textgrid #textview, #window {
+window textview { /* works */
   background-color: #ffff88;
 }
 
-#textgrid #openfiletextentry {
+entry { /* works */
   background-color: #ffff88;
+}
+
+#helpcontainer * { /* works */
+  color: white;
 }

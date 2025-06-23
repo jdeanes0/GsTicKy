@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object id="window" class="GtkWindow">
+    <property name="title">GsTicKy - Help</property>
+    <property name="default_width">320</property>
+    <property name="default_height">180</property>
+    <child>
+      <object class="GtkBox" id="keybinds_box">
+        <property name="orientation">vertical</property>
+        <property name="spacing">8</property>
+        <property name="name">helpcontainer</property>
+        <child>
+          <object class="GtkLabel" id="foo1">
+            <property name="label">Foo 1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="foo2">
+            <property name="label">Foo 2</property>
+
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="foo3">
+            <property name="label">Foo 3</property>
+
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="foo4">
+            <property name="label">Foo 4</property>
+
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="foo5">
+            <property name="label">Foo 5</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

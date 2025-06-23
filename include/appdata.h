@@ -11,6 +11,7 @@
  */
 typedef struct
 {
+    GtkApplication *app;
     GtkWindow *window;
     GtkTextBuffer *buffer;
     char gblfilename[PATH_MAX];

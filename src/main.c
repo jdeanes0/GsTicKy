@@ -8,6 +8,7 @@
 static void activate(GtkApplication *app, gpointer user_data)
 {
     AppData *app_data = g_new0(AppData, 1);
+    app_data->app = app;
 
     /* Construct a GtkBuilder instance and load our UI description */
     GtkBuilder *builder = gtk_builder_new();
@@ -63,6 +64,9 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     GtkEventController *quit_ctrl = gtk_shortcut_controller_new(); // quits the program and saves the note with the contents of the first line as the title
     create_keybind(GTK_WIDGET(gWindow), quit_ctrl, quit_cb, GDK_KEY_d, GDK_CONTROL_MASK, app_data);
+
+    GtkEventController *help_ctrl = gtk_shortcut_controller_new(); // opens a help window with keybinds
+    create_keybind(GTK_WIDGET(gWindow), help_ctrl, help_cb, GDK_KEY_h, GDK_CONTROL_MASK, app_data);
 
     // Manual shortcut for callback data passing
     GtkEventController *open_ctrl = gtk_shortcut_controller_new(); // opens a file
