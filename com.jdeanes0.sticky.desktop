@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=GsTicKy
+Exec=/home/jonathane/Desktop/Projects/gtk-apps/sticky-notes-app/build/sticky-notes-app
+Icon=com.jdeanes0.sticky
+Categories=Utility
