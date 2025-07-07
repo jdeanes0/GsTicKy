@@ -1,0 +1,44 @@
+* { /* works */
+  color: black;
+}
+
+/* window textview {
+  background-color: #ffff88;
+}
+
+entry {
+  background-color: #ffff88;
+} */
+
+#helpcontainer {
+  margin: 5px;
+}
+
+#configcontainer {
+  margin: 5px;
+}
+
+#configcontainer * {
+  color: @theme_fg_color;
+}
+
+#helpcontainer * { /* works */
+  color: @theme_fg_color;
+}
+
+/* palette */
+.icterine {
+  background-color: #ffff88;
+}
+.periwinkle {
+  background-color: #c6caed;
+}
+.chinese-violet {
+  background-color: #82667f;
+}
+.burnt-sienna {
+  background-color: #e08d70;
+}
+.mint {
+  background-color: #52b788;
+}

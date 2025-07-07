@@ -142,11 +142,88 @@ int help_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
     GtkBuilder *builder = gtk_builder_new();
     gtk_builder_add_from_file(builder, "res/help.ui", NULL);
 
-    GObject *window = gtk_builder_get_object(builder, "window");
+    GObject *window = gtk_builder_get_object(builder, "helpwindow");
     gtk_window_set_application(GTK_WINDOW(window), app_data->app);
 
     g_object_unref(builder);
 
+    gtk_window_present(GTK_WINDOW(window));
+
+    return 1;
+}
+
+typedef struct
+{
+    AppData *app_data;
+    GtkDropDown *dropdown;
+    GtkTextView *textview;
+    GtkEntry *entry;
+} ConfigSaveContext;
+
+/// @brief Saves the user's config to ConfigData
+/// @param button
+/// @param args
+/// @param user_data
+void save_config_cb(GtkButton *button, GVariant *args, gpointer user_data)
+{
+    ConfigSaveContext *ctx = (ConfigSaveContext *)user_data;
+    AppData *app_data = ctx->app_data;
+    GtkDropDown *dropdown = ctx->dropdown;
+
+    // Get the selected color from the dropdown
+    gint idx = gtk_drop_down_get_selected(dropdown);
+    GListModel *model = gtk_drop_down_get_model(dropdown);
+
+    const char *color = NULL;
+    if (GTK_IS_STRING_LIST(model) && idx >= 0)
+    {
+        color = gtk_string_list_get_string(GTK_STRING_LIST(model), idx);
+
+        app_data->config.background_theme = note_color_from_string(color);
+        g_print("%d", app_data->config.background_theme);
+
+        GtkTextView *textview = GTK_TEXT_VIEW(gtk_builder_get_object(app_data->builders.main_builder, "textarea"));
+        GtkEntry *entry = GTK_ENTRY(gtk_builder_get_object(app_data->builders.main_builder, "openfiletextentry"));
+
+        const char *classes[] = {color_classes[app_data->config.background_theme], NULL};
+        gtk_widget_set_css_classes(GTK_WIDGET(textview), classes);
+        gtk_widget_set_css_classes(GTK_WIDGET(entry), classes);
+    }
+
+    g_object_unref(dropdown);
+
+    // Close the config window
+    GtkWindow *window = GTK_WINDOW(gtk_widget_get_root(GTK_WIDGET(button)));
+    gtk_window_close(window);
+}
+
+/// @brief Opens the config window
+/// @param widget widget from which keybind is invoked from
+/// @param args idk man
+/// @param user_data typically? only the master AppData struct.
+/// @return standard success int
+int config_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
+{
+    AppData *app_data = (AppData *)user_data;
+
+    GtkBuilder *builder = gtk_builder_new();
+    gtk_builder_add_from_file(builder, "res/config.ui", NULL);
+
+    GObject *window = gtk_builder_get_object(builder, "configwindow");
+    GObject *save_config_button = gtk_builder_get_object(builder, "save_config_button");
+    GtkDropDown *dropdown = GTK_DROP_DOWN(gtk_builder_get_object(builder, "color_dropdown"));
+
+    g_object_ref(dropdown);
+
+    gtk_window_set_application(GTK_WINDOW(window), app_data->app);
+
+    ConfigSaveContext *ctx = g_new(ConfigSaveContext, 1);
+    ctx->app_data = app_data;
+    ctx->dropdown = dropdown;
+
+    g_signal_connect_data(save_config_button, "clicked", G_CALLBACK(save_config_cb), ctx, (GClosureNotify)g_free, 0);
+
+    g_object_unref(builder);
     gtk_window_present(GTK_WINDOW(window));
 
     return 1;

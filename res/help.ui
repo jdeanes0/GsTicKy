@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <object id="window" class="GtkWindow">
+  <object id="helpwindow" class="GtkWindow">
     <property name="title">GsTicKy - Help</property>
     <property name="default_width">320</property>
     <property name="default_height">180</property>
@@ -10,31 +10,49 @@
         <property name="spacing">8</property>
         <property name="name">helpcontainer</property>
         <child>
+          <object class="GtkLabel" id="foobar">
+            <property name="label">
+GsTicKy is designed to be an unforgiving sticky note editor, with some
+nice features included. All files are contained under ~/Documents/GsTicKy,
+editing keybinds are done in place, and the first line of every buffer
+is the associated filename.
+            </property>
+            <property name="halign">1</property>
+          </object>
+        </child>
+        <child>
           <object class="GtkLabel" id="foo1">
-            <property name="label">Foo 1</property>
+            <property name="label">&lt;tt&gt;^h : &lt;/tt&gt;Opens this window</property>
+            <property name="halign">1</property>
+            <property name="use-markup">TRUE</property>
           </object>
         </child>
         <child>
           <object class="GtkLabel" id="foo2">
-            <property name="label">Foo 2</property>
-
+            <property name="label">&lt;tt&gt;^o : &lt;/tt&gt;Opens text entry for opening a file</property>
+            <property name="halign">1</property>
+            <property name="use-markup">true</property>
           </object>
         </child>
         <child>
           <object class="GtkLabel" id="foo3">
-            <property name="label">Foo 3</property>
-
+            <property name="label">&lt;tt&gt;^d : &lt;/tt&gt;Closes window and saves buffer</property>
+            <property name="halign">1</property>
+            <property name="use-markup">true</property>
           </object>
         </child>
         <child>
           <object class="GtkLabel" id="foo4">
-            <property name="label">Foo 4</property>
-
+            <property name="label">&lt;tt&gt;^X : &lt;/tt&gt;Deletes buffer and associated file</property>
+            <property name="halign">1</property>
+            <property name="use-markup">true</property>
           </object>
         </child>
         <child>
           <object class="GtkLabel" id="foo5">
-            <property name="label">Foo 5</property>
+            <property name="label">&lt;tt&gt;^s : &lt;/tt&gt;Saves the buffer</property>
+            <property name="halign">1</property>
+            <property name="use-markup">true</property>
           </object>
         </child>
       </object>

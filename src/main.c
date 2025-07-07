@@ -45,15 +45,20 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     // load the CSS styles
     GtkCssProvider *provider = gtk_css_provider_new();
-    gtk_css_provider_load_from_path(provider, "res/style.css");
+    gtk_css_provider_load_from_path(provider, "res/style.gcss");
     gtk_style_context_add_provider_for_display(
         gdk_display_get_default(),
         GTK_STYLE_PROVIDER(provider),
         GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
     g_object_unref(provider);
 
-    // unref the builder
-    g_object_unref(builder);
+    app_data->config.background_theme = ICTERINE; // default starting background theme is icterine (light yellow)
+    const char *classes[] = {color_classes[app_data->config.background_theme], NULL};
+    gtk_widget_set_css_classes(GTK_WIDGET(textview), classes);
+    gtk_widget_set_css_classes(GTK_WIDGET(openfile_textentry), classes);
+
+    // add builder to app_data
+    app_data->builders.main_builder = builder; // will be destroyed on window close (I hope)
 
     // That's the basic buffer. Let's add some keybinds now.
     GtkEventController *save_ctrl = gtk_shortcut_controller_new(); // saves the file
@@ -67,6 +72,9 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     GtkEventController *help_ctrl = gtk_shortcut_controller_new(); // opens a help window with keybinds
     create_keybind(GTK_WIDGET(gWindow), help_ctrl, help_cb, GDK_KEY_h, GDK_CONTROL_MASK, app_data);
+
+    GtkEventController *config_ctrl = gtk_shortcut_controller_new(); // opens a window for config
+    create_keybind(GTK_WIDGET(gWindow), config_ctrl, config_cb, GDK_KEY_e, GDK_CONTROL_MASK, app_data);
 
     // Manual shortcut for callback data passing
     GtkEventController *open_ctrl = gtk_shortcut_controller_new(); // opens a file
@@ -83,6 +91,15 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     gtk_window_present(GTK_WINDOW(gWindow));
     g_idle_add(set_on_top_later, gWindow);
+
+    // ACTIVATION CODE FOR CONFIG WINDOW (callbacks)
+    GtkBuilder *config_builder = gtk_builder_new();
+    gtk_builder_add_from_file(config_builder, "res/config.ui", NULL);
+
+    GObject *save_config_button = gtk_builder_get_object(config_builder, "save_config_button");
+    g_signal_connect(GTK_BUTTON(save_config_button), "clicked", G_CALLBACK(save_config_cb), app_data);
+
+    app_data->builders.config_builder = config_builder; // will be destroyed on window close (I hope)
 }
 
 int main(int argc, char *argv[])

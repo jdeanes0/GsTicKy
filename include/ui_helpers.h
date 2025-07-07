@@ -7,8 +7,11 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
+#include "appdata.h"
+
 void update_window_title(const char *s, GtkWindow *window);
 void set_always_on_top(GtkWindow *gWindow);
 gboolean set_on_top_later(gpointer data);
+NoteColor note_color_from_string(const char *str);
 
 #endif

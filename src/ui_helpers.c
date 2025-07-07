@@ -4,6 +4,8 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
+#include "appdata.h"
+
 gboolean always_on_top = false;
 
 void update_window_title(const char *s, GtkWindow *window)
@@ -22,7 +24,8 @@ void update_window_title(const char *s, GtkWindow *window)
  */
 void set_always_on_top(GtkWindow *gWindow)
 {
-    if (!always_on_top) return;
+    if (!always_on_top)
+        return;
 
     // Make sure the window has been realized
     if (!gtk_widget_get_realized(GTK_WIDGET(gWindow)))
@@ -70,4 +73,13 @@ gboolean set_on_top_later(gpointer data)
     GtkWindow *gWindow = GTK_WINDOW(data);
     set_always_on_top(gWindow);
     return G_SOURCE_REMOVE;
+}
+
+NoteColor note_color_from_string(const char *str) {
+    for (int i = 0; i < FRIENDLY_COLORS_COUNT; ++i) {
+        if (strcmp(str, friendly_colors[i]) == 0)
+            return (NoteColor)i;
+    }
+    // Return a default or error value if not found
+    return PERIWINKLE;
 }

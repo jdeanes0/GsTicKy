@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object id="configwindow" class="GtkWindow">
+    <property name="title">GsTicKy - Config</property>
+    <property name="default_width">320</property>
+    <property name="default_height">180</property>
+    <child>
+      <object class="GtkBox" id="config_box">
+        <property name="orientation">vertical</property>
+        <property name="spacing">8</property>
+        <property name="name">configcontainer</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Background color:</property>
+            <property name="halign">1</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkDropDown" id="color_dropdown">
+            <property name="model">
+              <object class="GtkStringList">
+                <items>
+                  <item translatable="yes">Icterine</item>
+                  <item translatable="yes">Periwinkle</item>
+                  <item translatable="yes">Chinese Violet</item>
+                  <item translatable="yes">Burnt Sienna</item>
+                  <item translatable="yes">Mint</item>
+                </items>
+              </object>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="save_config_button">
+            <child>
+              <object class="GtkLabel">
+                <property name="label">Save &amp; Close</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
