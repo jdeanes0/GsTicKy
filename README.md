@@ -40,7 +40,7 @@ And that's all!
 
 - Launch the app to start a new note.
 - Use the config window to change background color.
-- Notes are saved automatically.
+- Notes are saved to the location in the top line of each file.
 
 ## License
 
