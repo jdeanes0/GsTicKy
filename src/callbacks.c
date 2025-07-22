@@ -215,6 +215,10 @@ int config_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
 
     g_object_ref(dropdown);
 
+    // Load the current config, if applicable, into the dropdown
+
+    gtk_drop_down_set_selected(dropdown, app_data->config.background_theme);
+
     gtk_window_set_application(GTK_WINDOW(window), app_data->app);
 
     ConfigSaveContext *ctx = g_new(ConfigSaveContext, 1);
