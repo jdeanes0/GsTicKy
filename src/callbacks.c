@@ -123,10 +123,11 @@ int escape_cb(GtkWidget *widget, GVariant *args, gpointer user_data)
     return 1;
 }
 
-gboolean window_closing_cb(GtkWidget *window, GVariant *args, gpointer user_data)
+gboolean shutdown_cb(GtkApplication *app, GVariant *args, gpointer user_data)
 {
-    AppData *app_data = (AppData *)user_data;
-    return FALSE; // allows event to propagate? Idk, this is just what gpt said.
+    AppData *app_data = (AppData *)g_object_get_data(G_OBJECT(app), "app-data");
+    save_config(app_data);
+    return FALSE;
 }
 
 /// @brief Opens the help window

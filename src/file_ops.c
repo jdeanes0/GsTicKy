@@ -87,3 +87,52 @@ int save_buffer(AppData *app_data)
         return 0;
     }
 }
+
+int read_config(AppData *app_data)
+{
+    g_autoptr(GError) error = NULL;
+    g_autoptr(GKeyFile) key_file = g_key_file_new();
+    GKeyFileFlags flags = G_KEY_FILE_NONE;
+
+    if (!g_key_file_load_from_file(key_file, "config.ini", flags, &error))
+    {
+        if (!g_error_matches(error, G_FILE_ERROR, G_FILE_ERROR_NOENT))
+        {
+            g_warning("Error loading key file: %s", error->message);
+        }
+        return 0;
+    }
+
+    g_autofree gchar *val = g_key_file_get_string(key_file, "General", "background", &error);
+    if (val == NULL && !g_error_matches(error, G_KEY_FILE_ERROR, G_KEY_FILE_ERROR_KEY_NOT_FOUND))
+    {
+        g_warning("Error finding key in key file: %s", error->message);
+        return 0;
+    }
+    else if (val == NULL)
+    {
+        val = g_strdup("0"); // icterine
+    }
+
+    // load values into config struct (may abstract out someday, I suppose)
+    app_data->config.background_theme = (NoteColor) atoi(val);
+    
+    return 1;
+}
+
+int save_config(AppData *app_data)
+{
+    g_autoptr(GKeyFile) key_file = g_key_file_new();
+    g_autofree gchar *val = g_strdup_printf("%d", app_data->config.background_theme);
+    g_autoptr(GError) error = NULL;
+
+    g_key_file_set_string(key_file, "General", "background", val);
+
+    if (!g_key_file_save_to_file(key_file, "config.ini", &error))
+    {
+        g_warning("Error saving key file: %s", error->message);
+        return 0;
+    }
+
+    return 1;
+}

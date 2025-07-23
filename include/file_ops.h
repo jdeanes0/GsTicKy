@@ -9,5 +9,7 @@
 
 int parse_title(const char *title, AppData *app_data);
 int save_buffer(AppData *app_data);
+int read_config(AppData *app_data);
+int save_config(AppData *app_data);
 
 #endif

@@ -2,6 +2,7 @@
 
 #include "appdata.h"
 #include "callbacks.h"
+#include "file_ops.h"
 #include "keybinds.h"
 #include "ui_helpers.h"
 
@@ -9,6 +10,7 @@ static void activate(GtkApplication *app, gpointer user_data)
 {
     AppData *app_data = g_new0(AppData, 1);
     app_data->app = app;
+    g_object_set_data(G_OBJECT(app), "app-data", app_data);
 
     /* Construct a GtkBuilder instance and load our UI description */
     GtkBuilder *builder = gtk_builder_new();
@@ -52,7 +54,7 @@ static void activate(GtkApplication *app, gpointer user_data)
         GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
     g_object_unref(provider);
 
-    app_data->config.background_theme = ICTERINE; // default starting background theme is icterine (light yellow)
+    read_config(app_data);
     const char *classes[] = {color_classes[app_data->config.background_theme], NULL};
     gtk_widget_set_css_classes(GTK_WIDGET(textview), classes);
     gtk_widget_set_css_classes(GTK_WIDGET(openfile_textentry), classes);
@@ -87,7 +89,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     GtkEventController *esc_open_ctrl = gtk_shortcut_controller_new(); // escapes the "open file" "dialog"
     create_keybind(GTK_WIDGET(openfile_textentry), esc_open_ctrl, escape_cb, GDK_KEY_Escape, GDK_NO_MODIFIER_MASK, app_data);
 
-    g_signal_connect_data(GTK_WINDOW(gWindow), "close-request", G_CALLBACK(window_closing_cb), app_data, (GClosureNotify)g_free, 0);
+    g_signal_connect(app, "shutdown", G_CALLBACK(shutdown_cb), app_data);
 
     gtk_window_present(GTK_WINDOW(gWindow));
     g_idle_add(set_on_top_later, gWindow);
