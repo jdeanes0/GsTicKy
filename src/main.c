@@ -19,7 +19,9 @@ static void activate(GtkApplication *app, gpointer user_data)
     /* Connect signal handlers to the constructed widgets. */
     GObject *gWindow = gtk_builder_get_object(builder, "window");
     gtk_window_set_application(GTK_WINDOW(gWindow), app);
+#ifdef __linux__
     g_signal_connect(gWindow, "realize", G_CALLBACK(set_always_on_top), NULL);
+#endif
     app_data->window = GTK_WINDOW(gWindow); // set the pointer for the global variable
     gtk_widget_set_name(GTK_WIDGET(gWindow), "window");
 
@@ -92,7 +94,9 @@ static void activate(GtkApplication *app, gpointer user_data)
     g_signal_connect(app, "shutdown", G_CALLBACK(shutdown_cb), app_data);
 
     gtk_window_present(GTK_WINDOW(gWindow));
+#ifdef __linux__
     g_idle_add(set_on_top_later, gWindow);
+#endif
 
     // ACTIVATION CODE FOR CONFIG WINDOW (callbacks)
     GtkBuilder *config_builder = gtk_builder_new();
