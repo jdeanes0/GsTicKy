@@ -1,5 +1,11 @@
 #include <gtk/gtk.h>
+#include <limits.h>
+#ifdef __linux__
 #include <linux/limits.h>
+#endif
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif
 #include <gdk/x11/gdkx.h>
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -18,8 +24,10 @@ void update_window_title(const char *s, GtkWindow *window)
     gtk_window_set_title(window, title);
 }
 
+#ifdef __linux__
 /**
  * Abandon all hope, ye who enter here. This be vibecode territory, because I'm not learning the X11 API just to put a window on top.
+ * This does not work with Windows. I'm not even gonna bother trying to retool this for a Windows build, either.
  * @param gWindow: the standard window of the sticky note
  */
 void set_always_on_top(GtkWindow *gWindow)
@@ -74,6 +82,7 @@ gboolean set_on_top_later(gpointer data)
     set_always_on_top(gWindow);
     return G_SOURCE_REMOVE;
 }
+#endif
 
 NoteColor note_color_from_string(const char *str) {
     for (int i = 0; i < FRIENDLY_COLORS_COUNT; ++i) {

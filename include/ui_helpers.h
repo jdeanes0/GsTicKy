@@ -2,7 +2,13 @@
 #define UI_HELPERS_H
 
 #include <gtk/gtk.h>
+#include <limits.h>
+#ifdef __linux__
 #include <linux/limits.h>
+#endif
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif
 #include <gdk/x11/gdkx.h>
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>

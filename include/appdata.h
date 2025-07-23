@@ -1,8 +1,14 @@
 #ifndef APPDATA_H
 #define APPDATA_H
 
-#include <linux/limits.h>
 #include <gtk/gtk.h>
+#include <limits.h>
+#ifdef __linux__
+#include <linux/limits.h>
+#endif
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif
 
 typedef enum
 {

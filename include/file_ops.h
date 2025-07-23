@@ -2,7 +2,13 @@
 #define FILE_OPS_H
 
 #include <gtk/gtk.h>
+#include <limits.h>
+#ifdef __linux__
 #include <linux/limits.h>
+#endif
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif
 #include <string.h>
 
 #include "appdata.h"
