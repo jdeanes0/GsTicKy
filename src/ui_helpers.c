@@ -6,9 +6,12 @@
 #ifndef PATH_MAX
 #define PATH_MAX 4096
 #endif
+
+#ifdef __linux__
 #include <gdk/x11/gdkx.h>
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
+#endif
 
 #include "appdata.h"
 
